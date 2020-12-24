@@ -74,7 +74,7 @@ def finddevices():
             devices.append(rl.replace(':red', ''))
     return devices
 
-# colour is an Colour object
+# colour is a Colour object
 def setcolour(device, colour):
     with open(device + ':red/brightness', 'w') as red:
         red.write(str(colour.red))
@@ -97,7 +97,7 @@ class Effect:
     def reset(self):
         pass
 
-# cycle: at each step add give step values to H, S and V colour components
+# cycle: at each step add given step values to H, S and V colour components
 class HSVCycleEffect(Effect):
     def __init__(self, H=.05, S=0, V=0, minS=1/255, maxS=1, minV=1/255, maxV=1):
         self.dH, self.dS, self.dV = H, S, V
@@ -127,7 +127,7 @@ class CombinedEffects(Effect):
             effect.step(colours)
 
 import random
-# Random effect to make people puke
+# Random effect to make people (or cats) puke
 class RandomEffect(Effect):
     def step(self, colours):
         for c in colours:
