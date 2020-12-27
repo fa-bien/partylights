@@ -182,7 +182,6 @@ class ChristmasEffectR(Effect):
             
     def step(self, colours):
         if self.nsteps == 0:
-            self.current = [ i for i in range(len(colours)) ]
             for i, c in enumerate(colours):
                 c.V = self.Vinit
             self.setrandomhues(colours)
@@ -199,7 +198,39 @@ class ChristmasEffectR(Effect):
         self.V = newV
         for c in colours:
             c.V = self.V
-        
+
+
+# More Chistmassy stuff: fde different colours in and out asynchronously
+class ChristmasEffectRA(Effect):
+    def __init__(self, V=0.1, minV=1/255, maxV=0.7, stepamp=0.3):
+        self.dV = V
+        self.minV, self.maxV, self.Vrange = minV, maxV, maxV - minV
+        self.nsteps = 0
+        self.switched = False
+        self.stepamp = stepamp
+
+    def genstepsize(self):
+        return 1 - self.stepamp + random.random() * (2 * self.stepamp)
+    
+    def step(self, colours):
+        if self.nsteps == 0:
+            self.Vinit = [ self.minV + random.random() * (self.maxV - self.minV)
+                           for c in colours ]
+            self.switched = [ False for c in colours ]
+            self.stepsize = [ self.genstepsize() for i in colours ]
+        #
+        self.nsteps += 1
+        for i, (c, V, s) in enumerate(zip(colours, self.Vinit, self.stepsize)):
+            newV = self.minV + self.Vrange * \
+                (1 + math.sin(V + self.dV * self.nsteps * s)) / 2.0
+            # case where we switch to the next colour
+            if newV > c.V and self.switched[i] == False:
+                c.H = random.random()
+                self.switched[i] = True
+            elif newV < c.V and self.switched[i] == True:
+                self.switched[i] = False
+            c.V = newV
+            
 # Reset colours
 class SpreadResetEffect(Effect):
     def step(self, colours):
@@ -236,11 +267,13 @@ if __name__ == '__main__':
     effect3 = HSVCycleEffect(0.00, 0.2, 0, minS=0.8)
     funstuff = [ #(ProgressiveResetEffect(), 1, 0),
                  # (RandomEffect(), 220, 1/100.),
-                 (effect1, 500, 1/30.),
                  # (effect2, 220, 1/30.),
                  # (effect3, 220, 1/30.),
+        
+                 (effect1, 500, 1/30.),
                  (ChristmasEffect(), 500, 1/30.),
                  (ChristmasEffectR(), 500, 1/30.),
+                 (ChristmasEffectRA(), 500, 1/30.),
                  # (CombinedEffects([effect1, effect2, effect3]), 200, 1/30.),
                 ]
     fun(devices, colours, funstuff)
